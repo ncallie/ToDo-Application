@@ -6,5 +6,5 @@ import ru.ncallie.ToDo.models.dto.OutRegistrationDTO;
 public interface SecurityService {
     OutRegistrationDTO registration(User user);
     String authentication(User user);
-    void confirmActivationCode(String code);
+    void confirmActivationCode(String username, String code);
 }

@@ -39,9 +39,9 @@ public class SecurityController {
        return ResponseEntity.ok().body(Map.of("jwt-token", jwtToken));
     }
 
-    @GetMapping("/activate/{code}")
-    public ResponseEntity confirmActivationCode(@PathVariable String code) {
-        securityService.confirmActivationCode(code);
+    @GetMapping("/activate/{username}/{code}")
+        public ResponseEntity confirmActivationCode(@PathVariable("username") String username, @PathVariable("code") String code) {
+        securityService.confirmActivationCode(username, code);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

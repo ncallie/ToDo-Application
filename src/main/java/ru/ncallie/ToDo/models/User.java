@@ -6,7 +6,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import static javax.persistence.EnumType.STRING;
@@ -23,8 +25,10 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = AUTO)
     private Long id;
+    @Column(unique = true)
     private String username;
     private String password;
+    @Column(unique = true)
     private String email;
 
     @ElementCollection(targetClass = Role.class, fetch = EAGER)
@@ -34,7 +38,14 @@ public class User implements UserDetails {
 
     //Mail Sender
     private boolean isActive;
-    private String activationCode;
+
+    @OneToMany (mappedBy = "owner", orphanRemoval = true)
+    private List<Task> tasks = new ArrayList<>();
+
+    public void addTask(Task task) {
+        tasks.add(task);
+        task.setOwner(this);
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

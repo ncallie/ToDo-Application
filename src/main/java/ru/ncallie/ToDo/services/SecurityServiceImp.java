@@ -30,17 +30,18 @@ public class SecurityServiceImp implements SecurityService {
     private final JWTUtil jwtUtil;
     private final MailSender mailSender;
 
+    private final String registrationMessage = "Hello %s !\n Welcome to ToDo\n Please, visit next link: http://localhost:8080/api/users/activate/%s/%s";
+
     @Transactional
     @Override
     public OutRegistrationDTO registration(User user) {
         validation(user);
         user.setRoles(new HashSet<>(){{add(Role.ROLE_USER);}});
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        user.setActivationCode(UUID.randomUUID().toString());
+        String activationCode = passwordEncoder.encode(user.getUsername() + user.getEmail());
         mailSender.send(user.getEmail(),
                     "Activation code",
-                    String.format("Hello %s !\n Welcome to ToDo\n Please, visit next link: http://localhost:8080/api/users/activate/%s", user.getUsername(), user.getActivationCode()));
+                    String.format(registrationMessage, user.getUsername(), user.getUsername(), activationCode));
         return convert.toOutRegistration(userRepository.save(user));
     }
 
@@ -57,9 +58,10 @@ public class SecurityServiceImp implements SecurityService {
 
     @Transactional
     @Override
-    public void confirmActivationCode(String code) {
-        User user = userRepository.getUserByActivationCode(code).orElseThrow(() -> new InvalidActivationCodeException("Invalid activation code"));
-        user.setActivationCode("");
+    public void confirmActivationCode(String username, String code) {
+        User user = userRepository.getUserByUsername(username).orElseThrow(() -> new InvalidActivationCodeException("Invalid activation code"));
+        if (!passwordEncoder.matches(user.getUsername()+user.getEmail(), code) || user.isActive())
+           throw new InvalidActivationCodeException("Invalid activation code");
         user.setActive(true);
         userRepository.save(user);
     }
